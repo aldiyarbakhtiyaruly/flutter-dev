@@ -1,7 +1,8 @@
-name: Simple CI Test
+name: Improved CI Pipeline
 
 on:
   push:
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -14,3 +15,12 @@ jobs:
 
       - name: Run test
         run: echo "Test passed"
+
+      - name: Lint check
+        run: echo "Lint passed"
+
+      - name: Build project
+        run: echo "Build complete"
+
+      - name: Check README
+        run: grep "project" README.md
