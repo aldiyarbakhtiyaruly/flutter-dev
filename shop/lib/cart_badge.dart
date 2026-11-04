@@ -8,12 +8,12 @@ class CartBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint('badge build');
+    final int count = context.select<Cart, int>((cart) => cart.count);
 
-    final count = context.watch<Cart>().count;
+    debugPrint('badge build: $count');
 
     return IconButton(
-      tooltip: 'Cart',
+      tooltip: 'Cart: $count unique books',
       onPressed: () {
         Navigator.of(context).pushNamed('/cart');
       },

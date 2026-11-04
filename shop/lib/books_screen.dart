@@ -12,53 +12,51 @@ class BooksScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint('BooksScreen build');
 
-    final cart = context.watch<Cart>();
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Book Shop'),
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text('${cart.total} ₸'),
-            ),
-          ),
-          const CartBadge(),
-        ],
+        actions: const [CartBadge()],
       ),
       body: ListView.builder(
         itemCount: books.length,
         itemBuilder: (context, index) {
-          final book = books[index];
-          final added = cart.items.contains(book);
+          final Book book = books[index];
 
-          debugPrint('row ${book.title}');
-
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            child: ListTile(
-              leading: const CircleAvatar(child: Icon(Icons.menu_book)),
-              title: Text(book.title),
-              subtitle: Text('${book.author}\n${book.price} ₸'),
-              isThreeLine: true,
-              trailing: added
-                  ? const Text(
-                      'Added',
-                      style: TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    )
-                  : OutlinedButton(
-                      onPressed: () {
-                        context.read<Cart>().add(book);
-                      },
-                      child: const Text('Add'),
-                    ),
-            ),
-          );
+          return BookRow(book: book);
         },
+      ),
+    );
+  }
+}
+
+class BookRow extends StatelessWidget {
+  const BookRow({super.key, required this.book});
+
+  final Book book;
+
+  @override
+  Widget build(BuildContext context) {
+    final int quantity = context.select<Cart, int>((cart) => cart.qtyOf(book));
+
+    debugPrint('row ${book.title}: $quantity');
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      child: ListTile(
+        leading: const CircleAvatar(child: Icon(Icons.menu_book)),
+        title: Text(book.title),
+        subtitle: Text(
+          '${book.author}\n'
+          '${book.price} ₸\n'
+          'In cart: $quantity',
+        ),
+        isThreeLine: true,
+        trailing: OutlinedButton(
+          onPressed: () {
+            context.read<Cart>().add(book);
+          },
+          child: const Text('Add'),
+        ),
       ),
     );
   }
