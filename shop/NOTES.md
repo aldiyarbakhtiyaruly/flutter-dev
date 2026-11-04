@@ -21,3 +21,41 @@ Constructors changed: 2.
 BooksScreen build: [enter measured count]
 
 Book row builds: [enter measured count]
+
+## Level 5 — UI Logic
+
+### Where does it live?
+
+Search query:
+BooksScreen State.
+It is local UI state and is not needed by other screens.
+
+Cart data:
+Cart ChangeNotifier.
+It is shared application state.
+
+Expanded or collapsed total:
+CartScreen State.
+Only the cart screen needs this value.
+
+Snackbar:
+BooksScreen.
+It is displayed after adding a new book.
+
+Clear cart confirmation:
+CartScreen.
+The dialog asks the user before clearing the cart.
+
+### Provider Usage
+
+context.watch:
+Subscribes a widget to Cart changes.
+
+context.read:
+Calls Cart methods without subscribing.
+
+context.select:
+Subscribes only to a selected value.
+
+Consumer:
+Rebuilds a specific UI section when Cart changes.

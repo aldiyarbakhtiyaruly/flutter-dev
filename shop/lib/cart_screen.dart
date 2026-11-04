@@ -4,15 +4,70 @@ import 'package:provider/provider.dart';
 import 'models/book.dart';
 import 'models/cart.dart';
 
-class CartScreen extends StatelessWidget {
+class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
+
+  @override
+  State<CartScreen> createState() => _CartScreenState();
+}
+
+class _CartScreenState extends State<CartScreen> {
+  bool _showDetails = true;
+
+  Future<void> _confirmClearCart() async {
+    final shouldClear = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Clear cart?'),
+          content: const Text('Are you sure you want to remove all books?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('Clear'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (!mounted) return;
+
+    if (shouldClear == true) {
+      context.read<Cart>().clear();
+
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Cart cleared')));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     debugPrint('CartScreen build');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('My Cart')),
+      appBar: AppBar(
+        title: const Text('My Cart'),
+        actions: [
+          Consumer<Cart>(
+            builder: (context, cart, child) {
+              return IconButton(
+                tooltip: 'Clear cart',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: cart.count == 0 ? null : _confirmClearCart,
+              );
+            },
+          ),
+        ],
+      ),
       body: Column(
         children: [
           Expanded(
@@ -28,7 +83,7 @@ class CartScreen extends StatelessWidget {
                 return ListView.builder(
                   itemCount: items.length,
                   itemBuilder: (context, index) {
-                    final Book book = items[index];
+                    final book = items[index];
 
                     return CartBookRow(key: ValueKey(book.title), book: book);
                   },
@@ -38,17 +93,41 @@ class CartScreen extends StatelessWidget {
           ),
           Consumer<Cart>(
             builder: (context, cart, child) {
-              return Padding(
-                padding: const EdgeInsets.all(20),
+              return Card(
+                margin: const EdgeInsets.all(12),
                 child: Column(
                   children: [
-                    Text('Unique books: ${cart.count}'),
-                    Text('Total copies: ${cart.totalQuantity}'),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Total: ${cart.total} ₸',
-                      style: Theme.of(context).textTheme.headlineSmall,
+                    ListTile(
+                      title: const Text(
+                        'Order Summary',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      trailing: Icon(
+                        _showDetails ? Icons.expand_less : Icons.expand_more,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          _showDetails = !_showDetails;
+                        });
+                      },
                     ),
+                    if (_showDetails) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(
+                          children: [
+                            Text('Unique books: ${cart.count}'),
+                            Text('Total copies: ${cart.totalQuantity}'),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Total: ${cart.total} ₸',
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               );
@@ -67,7 +146,7 @@ class CartBookRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final int quantity = context.select<Cart, int>((cart) => cart.qtyOf(book));
+    final quantity = context.select<Cart, int>((cart) => cart.qtyOf(book));
 
     debugPrint('cart row ${book.title}: $quantity');
 
